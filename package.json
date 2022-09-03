@@ -1,0 +1,33 @@
+{
+  "dependencies": {
+    "express": "^4.18.1",
+    "mongoose": "^6.5.4"
+  },
+  "name": "express-mesto",
+  "description": "Проект Mesto на Реакте с сервером и регистрацией",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {
+    "eslint": "^8.23.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "nodemon": "^2.0.19"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "npx eslint .",
+    "dev": "nodemon app.js",
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VolcharaMastering/express-mesto.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/VolcharaMastering/express-mesto/issues"
+  },
+  "homepage": "https://github.com/VolcharaMastering/express-mesto#readme"
+}
