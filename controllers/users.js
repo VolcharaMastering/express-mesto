@@ -4,8 +4,6 @@ const User = require('../models/User');
 const getUsers = async (req, res) => {
   try {
     const users = await User.find({});
-    // eslint-disable-next-line no-console
-    console.log('Ищем юзверов');
     res.status(200).send(users);
   } catch (evt) {
     res.status(500).send({ message: 'Произошла ошибка на сервере', ...evt });
@@ -13,7 +11,6 @@ const getUsers = async (req, res) => {
 };
 const getUserById = async (req, res) => {
   const { userId } = req.params;
-  console.log("ID=", userId);
   try {
     const user = await User.findById(userId);
     if (!user) {
@@ -28,7 +25,6 @@ const getUserById = async (req, res) => {
 const createUser = async (req, res) => {
   try {
     const user = await new User(req.body).save();
-    console.log(req.body);
     res.status(200).send(user);
   } catch (e) {
     if (e.errors.about.name === 'ValidatorError') {

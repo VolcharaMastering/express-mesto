@@ -11,18 +11,21 @@ const app = express();
 // app.use(bodyParser.urlencoded({extended: true}));
 
 app.use((req, res, next) => {
+  // eslint-disable-next-line no-console
   console.log(req.method, req.params);
   next();
-})
+});
 app.use((req, res, next) => {
   req.user = {
-    _id: '6317b2bf044e629b2aa2586d'
+    _id: '6317b2bf044e629b2aa2586d',
   };
 
   next();
 });
 app.use(express.json());
 app.use(require('./routes/users'));
+app.use(require('./routes/cards'));
+
 async function connect() {
   await mongoose.connect('mongodb://localhost:27017/mestodb', {
     useNewUrlParser: true,
