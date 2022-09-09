@@ -35,9 +35,41 @@ const createCard = async (req, res) => {
     res.status(500).send({ message: 'Произошла post ошибка на сервере', ...e });
   }
 };
+const likeCard = (req, res) => {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
+    { new: true },
+  )
+    .then((card) => {
+      if (!card) {
+        res.status(404).send({ message: 'Такой карточки не существует' });
+        return;
+      }
+      res.status(200).send({ data: card });
+    })
+    .catch((e) => res.status(500).send({ message: 'Произошла post ошибка на сервере', ...e }));
+};
+const dislikeCard = (req, res) => {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $pull: { likes: req.user._id } }, // убрать _id из массива
+    { new: true },
+  )
+    .then((card) => {
+      if (!card) {
+        res.status(404).send({ message: 'Такой карточки не существует' });
+        return;
+      }
+      res.status(200).send({ data: card });
+    })
+    .catch((e) => res.status(500).send({ message: 'Произошла post ошибка на сервере', ...e }));
+};
 
 module.exports = {
   getCards,
   delCardById,
   createCard,
+  likeCard,
+  dislikeCard,
 };

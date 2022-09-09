@@ -34,9 +34,43 @@ const createUser = async (req, res) => {
     res.status(500).send({ message: 'Произошла post ошибка на сервере', ...e });
   }
 };
+const updateUser = (req, res) => {
+  const { name, about } = req.body;
+  User.findByIdAndUpdate(
+    req.user._id,
+    {
+      name, about,
+    },
+  )
+    .then((user) => {
+      if (!user) {
+        res.status(404).send({ message: 'Такого пользователя нет' });
+        return;
+      }
+      res.status(200).send({ data: user });
+    })
+    .catch((e) => res.status(500).send({ message: 'Произошла post ошибка на сервере', ...e }));
+};
+const updateUserAvatar = (req, res) => {
+  const { avatar } = req.body;
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
+  )
+    .then((user) => {
+      if (!user) {
+        res.status(404).send({ message: 'Такого пользователя нет' });
+        return;
+      }
+      res.status(200).send({ data: user });
+    })
+    .catch((e) => res.status(500).send({ message: 'Произошла post ошибка на сервере', ...e }));
+};
 
 module.exports = {
   getUsers,
   getUserById,
   createUser,
+  updateUser,
+  updateUserAvatar,
 };
