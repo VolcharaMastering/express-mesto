@@ -22,7 +22,7 @@ const delCardById = async (req, res) => {
   try {
     const card = await Card.findById(cardId);
     if (!card) {
-      res.status(INCORRECT_DATA).send({ message: 'Нет такой карточки' });
+      res.status(NOT_FOUND).send({ message: 'Нет такой карточки' });
       return;
     }
     if (JSON.stringify(card.owner) !== JSON.stringify(req.user._id)) {
