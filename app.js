@@ -12,14 +12,14 @@ const app = express();
 
 app.use((req, res, next) => {
   req.user = {
-    _id: '6317b2bf044e629b2aa2586d',
+    _id: '5317b2bf044e629b2aa2586d',
   };
 
   next();
 });
 app.use(express.json());
-app.use(require('./routes/users'));
 app.use(require('./routes/cards'));
+app.use(require('./routes/users'));
 
 async function connect() {
   await mongoose.connect('mongodb://localhost:27017/mestodb', {

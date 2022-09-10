@@ -4,6 +4,7 @@ const Card = require('../models/Card');
 const OK_CODE = 200;
 const CODE_CREATED = 201;
 const INCORRECT_DATA = 400;
+const AUTH_ERROR = 403;
 const NOT_FOUND = 404;
 const SERVER_ERROR = 500;
 
@@ -17,10 +18,14 @@ const getCards = async (req, res) => {
 };
 const delCardById = async (req, res) => {
   const { cardId } = req.params;
+  if (req.owner !== req.user._id) {
+    res.status(AUTH_ERROR).send({ message: 'У вас не достаточно прав для удаления карточки' });
+    return;
+  }
   try {
     const card = await Card.findByIdAndDelete(cardId);
     if (!card) {
-      res.status(NOT_FOUND).send({ message: 'Нет такой карточки' });
+      res.status(INCORRECT_DATA).send({ message: 'Нет такой карточки' });
       return;
     }
     res.status(OK_CODE).send(card);
@@ -77,15 +82,10 @@ const dislikeCard = (req, res) => {
     .catch((e) => res.status(SERVER_ERROR).send({ message: 'Произошла post ошибка на сервере', ...e }));
 };
 
-const routeNotFoud = (req, res) => {
-  res.status(NOT_FOUND).send({ message: 'Страница не найдена' });
-};
-
 module.exports = {
   getCards,
   delCardById,
   createCard,
   likeCard,
   dislikeCard,
-  routeNotFoud,
 };
