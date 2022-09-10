@@ -32,8 +32,8 @@ const createUser = async (req, res) => {
   try {
     const user = await new User(req.body).save();
     res.status(CODE_CREATED).send(user);
-  } catch (e) {
-    if (e.errors.about.name === 'ValidatorError') {
+  } catch ({ name: e }) {
+    if (e === 'ValidatorError' ) {
       res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию', ...e });
       return;
     }

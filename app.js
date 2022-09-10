@@ -11,11 +11,6 @@ const app = express();
 // app.use(bodyParser.urlencoded({extended: true}));
 
 app.use((req, res, next) => {
-  // eslint-disable-next-line no-console
-  console.log(req.method, req.params);
-  next();
-});
-app.use((req, res, next) => {
   req.user = {
     _id: '6317b2bf044e629b2aa2586d',
   };
