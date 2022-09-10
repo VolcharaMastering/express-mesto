@@ -25,12 +25,13 @@ const delCardById = async (req, res) => {
       res.status(NOT_FOUND).send({ message: 'Нет такой карточки' });
       return;
     }
-    if (JSON.stringify(card.owner) !== JSON.stringify(req.user._id)) {
+    if (JSON.stringify(card.owner) === JSON.stringify(req.user._id)) {
+      await Card.findByIdAndDelete(cardId);
+      res.status(OK_CODE).send(card);
+    }else{
       res.status(AUTH_ERROR).send({ message: 'У вас не достаточно прав для удаления карточки' });
       return;
     }
-    await Card.findByIdAndDelete(cardId);
-    res.status(OK_CODE).send(card);
   } catch (evt) {
     res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере', ...evt });
   }
