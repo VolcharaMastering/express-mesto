@@ -64,7 +64,7 @@ const dislikeCard = (req, res) => {
       res.status(200).send({ data: card });
     })
     .catch((e) => res.status(500).send({ message: 'Произошла post ошибка на сервере', ...e }));
-};
+ };
 
 module.exports = {
   getCards,
