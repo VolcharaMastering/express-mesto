@@ -77,10 +77,15 @@ const dislikeCard = (req, res) => {
     .catch((e) => res.status(SERVER_ERROR).send({ message: 'Произошла post ошибка на сервере', ...e }));
 };
 
+const routeNotFoud = (req, res) => {
+  res.status(NOT_FOUND).send({ message: 'Страница не найдена' });
+};
+
 module.exports = {
   getCards,
   delCardById,
   createCard,
   likeCard,
   dislikeCard,
+  routeNotFoud,
 };

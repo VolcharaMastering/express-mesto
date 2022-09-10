@@ -78,6 +78,9 @@ const updateUserAvatar = (req, res) => {
     })
     .catch((e) => res.status(SERVER_ERROR).send({ message: 'Произошла post ошибка на сервере', ...e }));
 };
+const routeNotFoud = (req, res) => {
+  res.status(NOT_FOUND).send({ message: 'Страница не найдена' });
+};
 
 module.exports = {
   getUsers,
@@ -85,4 +88,5 @@ module.exports = {
   createUser,
   updateUser,
   updateUserAvatar,
+  routeNotFoud,
 };
