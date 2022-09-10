@@ -20,7 +20,7 @@ const delCardById = async (req, res) => {
   try {
     const card = await Card.findByIdAndDelete(cardId);
     if (!card) {
-      res.status(NOT_FOUND).send({ message: 'Нет такой карточки'});
+      res.status(NOT_FOUND).send({ message: 'Нет такой карточки' });
       return;
     }
     res.status(OK_CODE).send(card);
@@ -34,7 +34,7 @@ const createCard = async (req, res) => {
     const card = await new Card({ name, link, owner: req.user._id }).save();
     res.status(CODE_CREATED).send(card);
   } catch ({ name: e }) {
-    if (e === 'ValidatorError' ) {
+    if (e === 'ValidatorError') {
       res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию.', e });
       return;
     }
