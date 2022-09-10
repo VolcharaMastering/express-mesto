@@ -28,7 +28,7 @@ const delCardById = async (req, res) => {
     if (JSON.stringify(card.owner) === JSON.stringify(req.user._id)) {
       await Card.findByIdAndDelete(cardId);
       res.status(OK_CODE).send(card);
-    }else{
+    } else {
       res.status(AUTH_ERROR).send({ message: 'У вас не достаточно прав для удаления карточки' });
       return;
     }
