@@ -36,11 +36,19 @@ const createUser = async (req, res) => {
     const user = await new User(req.body).save();
     res.status(CODE_CREATED).send(user);
   } catch (e) {
-    if (e.errors.name.name === 'ValidatorError') {
-      res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию' });
-      return;
+    if (e.errors.name) {
+      if (e.errors.name.name === 'ValidatorError') {
+        res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию' });
+        return;
+      }
     }
-    res.status(SERVER_ERROR).send({ message: 'Произошла post ошибка на сервере' });
+    if (e.errors.about) {
+      if (e.errors.about.name === 'ValidatorError') {
+        res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию' });
+        return;
+      }
+    }
+    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере', ...e });
   }
 };
 const updateUser = (req, res) => {

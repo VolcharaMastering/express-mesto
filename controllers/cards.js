@@ -38,9 +38,17 @@ const createCard = async (req, res) => {
     const card = await new Card({ name, link, owner: req.user._id }).save();
     res.status(CODE_CREATED).send(card);
   } catch (e) {
-    if (e.errors.name.name === 'ValidatorError') {
-      res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию.' });
-      return;
+    if (e.errors.name) {
+      if (e.errors.name.name === 'ValidatorError') {
+        res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию' });
+        return;
+      }
+    }
+    if (e.errors.link) {
+      if (e.errors.link.name === 'ValidatorError') {
+        res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию' });
+        return;
+      }
     }
     res.status(SERVER_ERROR).send({ message: 'Произошла post ошибка на сервере' });
   }
