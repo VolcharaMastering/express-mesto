@@ -38,17 +38,23 @@ const createUser = async (req, res) => {
   } catch (e) {
     if (e.errors.name) {
       if (e.errors.name.name === 'ValidatorError') {
-        res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию' });
+        res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию. Обязательное поле "Имя" не заполнено' });
         return;
       }
     }
     if (e.errors.about) {
       if (e.errors.about.name === 'ValidatorError') {
-        res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию' });
+        res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию. Обязательное поле "профессия" не заполнено' });
         return;
       }
     }
-    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере', ...e });
+    if (e.errors.avatar) {
+      if (e.errors.avatar.name === 'ValidatorError') {
+        res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию. Обязательное поле "аватар" не заполнено' });
+        return;
+      }
+    }
+    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
   }
 };
 const updateUser = (req, res) => {
