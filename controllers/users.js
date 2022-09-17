@@ -1,10 +1,22 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable linebreak-style */
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
 const {
   OK_CODE, CODE_CREATED, INCORRECT_DATA, NOT_FOUND, SERVER_ERROR,
 } = require('../states/states');
+
+const login = async (req, res) => {
+  const { email, password } = req.body;
+  console.log('email=', email, password);
+  try {
+    const user = await User.findOne({ email });
+    res.status(OK_CODE).send(user);
+  } catch (e) {
+    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере', ...e });
+  }
+}
 
 const getUsers = async (req, res) => {
   try {
@@ -14,6 +26,7 @@ const getUsers = async (req, res) => {
     res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
   }
 };
+
 const getUserById = async (req, res) => {
   const { userId } = req.params;
   try {
@@ -32,30 +45,45 @@ const getUserById = async (req, res) => {
   }
 };
 const createUser = async (req, res) => {
+  const {
+    email,
+    password,
+    name,
+    about,
+    avatar,
+  } = req.body;
+  const checkMail = User.findOne({ email });
+  if (checkMail) {
+    res.status(INCORRECT_DATA).send({ message: 'Такой email уже есть в базе' });
+    return;
+  }
   try {
-    const user = await new User(req.body).save();
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await new User({
+      email, password: hashedPassword, name, about, avatar,
+    }).save();
     res.status(CODE_CREATED).send(user);
   } catch (e) {
-    if (e.errors.name) {
-      if (e.errors.name.name === 'ValidatorError') {
-        res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию. Обязательное поле "Имя" не заполнено' });
-        return;
-      }
+    // if (e.errors.name) {
+    if (e.name === 'ValidatorError') {
+      res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию. Обязательное поле "Имя" не заполнено' });
+      return;
     }
-    if (e.errors.about) {
-      if (e.errors.about.name === 'ValidatorError') {
-        res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию. Обязательное поле "профессия" не заполнено' });
-        return;
-      }
-    }
-    if (e.errors.avatar) {
-      if (e.errors.avatar.name === 'ValidatorError') {
-        res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию. Обязательное поле "аватар" не заполнено' });
-        return;
-      }
-    }
+    // }
+    /*     if (e.errors.about) {
+          if (e.errors.about.name === 'ValidatorError') {
+            res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию. Обязательное поле "профессия" не заполнено' });
+            return;
+          }
+        }
+        if (e.errors.avatar) {
+          if (e.errors.avatar.name === 'ValidatorError') {
+            res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию. Обязательное поле "аватар" не заполнено' });
+            return;
+          } */
     res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
   }
+  // }
 };
 const updateUser = (req, res) => {
   const { name, about } = req.body;
@@ -112,4 +140,5 @@ module.exports = {
   updateUser,
   updateUserAvatar,
   routeNotFoud,
+  login,
 };
