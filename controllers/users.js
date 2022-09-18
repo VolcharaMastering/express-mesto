@@ -12,14 +12,13 @@ const login = async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email }).select('+password');
-    console.log('email=', email, password);
     if (!user) {
       res.status(AUTH_ERROR).send({ message: 'Неверное имя пользователя или пароль' });
       return;
     }
     const validUser = await bcrypt.compare(password, user.password);
     if (!validUser) {
-            res.status(AUTH_ERROR).send({ message: 'Неверное имя пользователя или пароль' });
+      res.status(AUTH_ERROR).send({ message: 'Неверное имя пользователя или пароль' });
       return;
     }
     const token = jwt.sign({
@@ -31,10 +30,27 @@ const login = async (req, res) => {
       sameSite: true,
       // secure: true,
     });
-    console.log('token', token, 'resCookie', res.cookie)
     res.status(OK_CODE).send(user.toJSON());
   } catch (e) {
     res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере', ...e });
+  }
+};
+
+const aboutMe = async (req, res) => {
+  const myId = req.user._id;
+  try {
+    const me = await User.findById(myId);
+    if (!me) {
+      res.status(NOT_FOUND).send({ message: 'Такого пользователя нет' });
+      return;
+    }
+    res.status(OK_CODE).send(me);
+  } catch (e) {
+    if (e.name === 'CastError') {
+      res.status(INCORRECT_DATA).send({ message: 'Невалидный id', myId });
+      return;
+    }
+    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
   }
 };
 
@@ -72,7 +88,7 @@ const createUser = async (req, res) => {
     about,
     avatar,
   } = req.body;
-  const checkMail = User.findOne({ email });
+  const checkMail = await User.findOne({ email });
   if (checkMail) {
     res.status(INCORRECT_DATA).send({ message: 'Такой email уже есть в базе' });
     return;
@@ -92,13 +108,17 @@ const createUser = async (req, res) => {
     // }
     /*     if (e.errors.about) {
           if (e.errors.about.name === 'ValidatorError') {
-            res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию. Обязательное поле "профессия" не заполнено' });
+            res.status(INCORRECT_DATA).send({
+              message: 'Запрос не прошёл валидацию. Обязательное поле "профессия" не заполнено'
+            });
             return;
           }
         }
         if (e.errors.avatar) {
           if (e.errors.avatar.name === 'ValidatorError') {
-            res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию. Обязательное поле "аватар" не заполнено' });
+            res.status(INCORRECT_DATA).send({
+              message: 'Запрос не прошёл валидацию. Обязательное поле "аватар" не заполнено'
+            });
             return;
           } */
     res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
@@ -161,4 +181,5 @@ module.exports = {
   updateUserAvatar,
   routeNotFoud,
   login,
+  aboutMe,
 };
