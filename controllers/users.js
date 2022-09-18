@@ -1,22 +1,42 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable linebreak-style */
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const {
-  OK_CODE, CODE_CREATED, INCORRECT_DATA, NOT_FOUND, SERVER_ERROR,
+  OK_CODE, CODE_CREATED, INCORRECT_DATA, NOT_FOUND, SERVER_ERROR, AUTH_ERROR,
 } = require('../states/states');
 
 const login = async (req, res) => {
   const { email, password } = req.body;
-  console.log('email=', email, password);
   try {
-    const user = await User.findOne({ email });
-    res.status(OK_CODE).send(user);
+    const user = await User.findOne({ email }).select('+password');
+    console.log('email=', email, password);
+    if (!user) {
+      res.status(AUTH_ERROR).send({ message: 'Неверное имя пользователя или пароль' });
+      return;
+    }
+    const validUser = await bcrypt.compare(password, user.password);
+    if (!validUser) {
+            res.status(AUTH_ERROR).send({ message: 'Неверное имя пользователя или пароль' });
+      return;
+    }
+    const token = jwt.sign({
+      _id: user._id,
+    }, process.env.JWT_SECRET);
+    res.cookie('jwt', token, {
+      maxAge: 3600000,
+      httpOnly: true,
+      sameSite: true,
+      // secure: true,
+    });
+    console.log('token', token, 'resCookie', res.cookie)
+    res.status(OK_CODE).send(user.toJSON());
   } catch (e) {
     res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере', ...e });
   }
-}
+};
 
 const getUsers = async (req, res) => {
   try {

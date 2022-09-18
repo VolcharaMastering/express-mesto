@@ -1,4 +1,5 @@
 /* eslint-disable linebreak-style */
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 // const path = require('path');
@@ -6,17 +7,12 @@ const mongoose = require('mongoose');
 
 const { PORT = 3000 } = process.env;
 const app = express();
+const cookieParser = require('cookie-parser');
 
 // app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded({extended: true}));
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '6317b2bf044e629b2aa2586d',
-  };
-
-  next();
-});
+app.use(cookieParser());
 app.use(express.json());
 app.use(require('./routes/cards'));
 app.use(require('./routes/users'));
