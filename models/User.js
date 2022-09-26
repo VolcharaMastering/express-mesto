@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Поле password должно быть заполнено'],
     minlength: [6, 'Длина пароль не меньше 6ти символов'],
+    select: false,
   },
 
   name: {
@@ -37,5 +38,12 @@ const userSchema = new mongoose.Schema({
     maxlength: [30, 'Длина поля about не более 30 символов'],
   },
 });
+
+// eslint-disable-next-line func-names
+userSchema.methods.toJSON = function () {
+  const user = this.toObject();
+  delete user.password;
+  return user;
+};
 
 module.exports = mongoose.model('user', userSchema);
