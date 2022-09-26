@@ -5,12 +5,16 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const {
-  OK_CODE, CODE_CREATED, INCORRECT_DATA, NOT_FOUND, SERVER_ERROR, AUTH_ERROR,
+  OK_CODE, CODE_CREATED, INCORRECT_DATA, NOT_FOUND, SERVER_ERROR, AUTH_ERROR, PERMISSION_ERROR,
 } = require('../states/states');
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   const { email, password } = req.body;
   try {
+    if (!email || !password) {
+      res.status(PERMISSION_ERROR).send({ message: 'Поля необходимо заполнить.' });
+      return;
+    }
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
       res.status(AUTH_ERROR).send({ message: 'Неверное имя пользователя или пароль' });
@@ -36,7 +40,7 @@ const login = async (req, res) => {
   }
 };
 
-const aboutMe = async (req, res) => {
+/* const aboutMe = async (req, res) => {
   const myId = req.user._id;
   try {
     const me = await User.findById(myId);
@@ -60,10 +64,41 @@ const getUsers = async (req, res) => {
     res.status(OK_CODE).send(users);
   } catch (evt) {
     res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
+    next(e);
+    // res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере', ...e });
+  }
+}; */
+
+const aboutMe = async (req, res, next) => {
+  const myId = req.user._id;
+  try {
+    const me = await User.findById(myId);
+    if (!me) {
+      res.status(NOT_FOUND).send({ message: 'Такого пользователя нет' });
+      return;
+    }
+    res.status(OK_CODE).send(me);
+  } catch (e) {
+    next(e);
+    /* if (e.name === 'CastError') {
+      res.status(INCORRECT_DATA).send({ message: 'Невалидный id', myId });
+      return;
+    }
+    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' }); */
   }
 };
 
-const getUserById = async (req, res) => {
+const getUsers = async (req, res, next) => {
+  try {
+    const users = await User.find({});
+    res.status(OK_CODE).send(users);
+  } catch (e) {
+    next(e);
+    // res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
+  }
+};
+
+const getUserById = async (req, res, next) => {
   const { userId } = req.params;
   try {
     const user = await User.findById(userId);
@@ -73,14 +108,15 @@ const getUserById = async (req, res) => {
     }
     res.status(OK_CODE).send(user);
   } catch (e) {
-    if (e.name === 'CastError') {
+    next(e);
+    /*     if (e.name === 'CastError') {
       res.status(INCORRECT_DATA).send({ message: 'Невалидный id ' });
       return;
     }
-    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
+    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' }); */
   }
 };
-const createUser = async (req, res) => {
+const createUser = async (req, res, next) => {
   const {
     email,
     password,
@@ -100,13 +136,15 @@ const createUser = async (req, res) => {
     }).save();
     res.status(CODE_CREATED).send(user);
   } catch (e) {
-    // if (e.errors.name) {
+    /*     // if (e.errors.name) {
     if (e.name === 'ValidatorError') {
-      res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию. Обязательное поле "Имя" не заполнено' });
+      res.status(INCORRECT_DATA).send({
+        message: 'Запрос не прошёл валидацию. Обязательное поле "Имя" не заполнено'
+      });
       return;
     }
     // }
-    /*     if (e.errors.about) {
+        if (e.errors.about) {
           if (e.errors.about.name === 'ValidatorError') {
             res.status(INCORRECT_DATA).send({
               message: 'Запрос не прошёл валидацию. Обязательное поле "профессия" не заполнено'
@@ -120,12 +158,14 @@ const createUser = async (req, res) => {
               message: 'Запрос не прошёл валидацию. Обязательное поле "аватар" не заполнено'
             });
             return;
-          } */
-    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
+          }
+    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' }); */
+    next(e);
+    //
   }
   // }
 };
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -140,14 +180,15 @@ const updateUser = (req, res) => {
       res.send({ data: user });
     })
     .catch((e) => {
-      if (e.name === 'ValidationError') {
+      next(e);
+      /*       if (e.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Некорректные данные' });
         return;
       }
-      res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
+      res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' }); */
     });
 };
-const updateUserAvatar = (req, res) => {
+const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -162,14 +203,15 @@ const updateUserAvatar = (req, res) => {
       res.send({ data: user });
     })
     .catch((e) => {
-      if (e.name === 'ValidationError') {
+      next(e);
+      /* if (e.name === 'ValidationError') {
         res.status(INCORRECT_DATA).send({ message: 'Некорректные данные' });
         return;
       }
-      res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
+      res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' }); */
     });
 };
-const routeNotFoud = (req, res) => {
+const routeNotFoud = (req, res, next) => {
   res.status(NOT_FOUND).send({ message: 'Страница не найдена' });
 };
 
