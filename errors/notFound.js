@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 class NotFound extends Error {
   constructor(message) {
     super(message);

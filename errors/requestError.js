@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 class IncorrectData extends Error {
   constructor(message) {
     super(message);

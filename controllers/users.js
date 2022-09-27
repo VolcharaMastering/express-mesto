@@ -2,27 +2,30 @@
 /* eslint-disable no-unused-vars */
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const AuthError = require('../errors/authError');
+const NotFound = require('../errors/notFound');
+const PermissionError = require('../errors/permissionError');
+const IncorrectData = require('../errors/requestError');
+const ServerError = require('../errors/serverError');
 const User = require('../models/User');
 
-const {
-  OK_CODE, CODE_CREATED, INCORRECT_DATA, NOT_FOUND, SERVER_ERROR, AUTH_ERROR, PERMISSION_ERROR,
-} = require('../states/states');
+const { OK_CODE, CODE_CREATED } = require('../states/states');
 
 const login = async (req, res, next) => {
   const { email, password } = req.body;
+  if (!email || !password) {
+    next(new PermissionError('Поля необходимо заполнить.'));
+    return;
+  }
   try {
-    if (!email || !password) {
-      res.status(PERMISSION_ERROR).send({ message: 'Поля необходимо заполнить.' });
-      return;
-    }
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      res.status(AUTH_ERROR).send({ message: 'Неверное имя пользователя или пароль' });
+      next(new AuthError('Неверное имя пользователя или пароль'));
       return;
     }
     const validUser = await bcrypt.compare(password, user.password);
     if (!validUser) {
-      res.status(AUTH_ERROR).send({ message: 'Неверное имя пользователя или пароль' });
+      next(new AuthError('Неверное имя пользователя или пароль'));
       return;
     }
     const token = jwt.sign({
@@ -36,55 +39,25 @@ const login = async (req, res, next) => {
     });
     res.status(OK_CODE).send(user.toJSON());
   } catch (e) {
-    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере', ...e });
+    next(new ServerError('Произошла ошибка на сервере'));
   }
 };
-
-/* const aboutMe = async (req, res) => {
-  const myId = req.user._id;
-  try {
-    const me = await User.findById(myId);
-    if (!me) {
-      res.status(NOT_FOUND).send({ message: 'Такого пользователя нет' });
-      return;
-    }
-    res.status(OK_CODE).send(me);
-  } catch (e) {
-    if (e.name === 'CastError') {
-      res.status(INCORRECT_DATA).send({ message: 'Невалидный id', myId });
-      return;
-    }
-    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
-  }
-};
-
-const getUsers = async (req, res) => {
-  try {
-    const users = await User.find({});
-    res.status(OK_CODE).send(users);
-  } catch (evt) {
-    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
-    next(e);
-    // res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере', ...e });
-  }
-}; */
 
 const aboutMe = async (req, res, next) => {
   const myId = req.user._id;
   try {
     const me = await User.findById(myId);
     if (!me) {
-      res.status(NOT_FOUND).send({ message: 'Такого пользователя нет' });
+      next(new NotFound('Такого пользователя нет'));
       return;
     }
     res.status(OK_CODE).send(me);
   } catch (e) {
-    next(e);
-    /* if (e.name === 'CastError') {
-      res.status(INCORRECT_DATA).send({ message: 'Невалидный id', myId });
+    if (e.name === 'CastError') {
+      next(new IncorrectData('Невалидный id', myId));
       return;
     }
-    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' }); */
+    next(new ServerError('Произошла ошибка на сервере'));
   }
 };
 
@@ -93,8 +66,7 @@ const getUsers = async (req, res, next) => {
     const users = await User.find({});
     res.status(OK_CODE).send(users);
   } catch (e) {
-    next(e);
-    // res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
+    next(new ServerError('Произошла ошибка на сервере'));
   }
 };
 
@@ -103,17 +75,16 @@ const getUserById = async (req, res, next) => {
   try {
     const user = await User.findById(userId);
     if (!user) {
-      res.status(NOT_FOUND).send({ message: 'Такого пользователя нет' });
+      next(new NotFound('Такого пользователя нет'));
       return;
     }
     res.status(OK_CODE).send(user);
   } catch (e) {
-    next(e);
-    /*     if (e.name === 'CastError') {
-      res.status(INCORRECT_DATA).send({ message: 'Невалидный id ' });
+    if (e.name === 'CastError') {
+      next(new IncorrectData('Невалидный id'));
       return;
     }
-    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' }); */
+    next(new ServerError('Произошла ошибка на сервере'));
   }
 };
 const createUser = async (req, res, next) => {
@@ -126,7 +97,7 @@ const createUser = async (req, res, next) => {
   } = req.body;
   const checkMail = await User.findOne({ email });
   if (checkMail) {
-    res.status(INCORRECT_DATA).send({ message: 'Такой email уже есть в базе' });
+    next(new IncorrectData('Такой email уже есть в базе'));
     return;
   }
   try {
@@ -136,34 +107,30 @@ const createUser = async (req, res, next) => {
     }).save();
     res.status(CODE_CREATED).send(user);
   } catch (e) {
-    /*     // if (e.errors.name) {
-    if (e.name === 'ValidatorError') {
-      res.status(INCORRECT_DATA).send({
-        message: 'Запрос не прошёл валидацию. Обязательное поле "Имя" не заполнено'
-      });
+    if (e.code === 11000) {
+      next(new IncorrectData('Пользователь с таким email уже существует.'));
       return;
     }
-    // }
-        if (e.errors.about) {
-          if (e.errors.about.name === 'ValidatorError') {
-            res.status(INCORRECT_DATA).send({
-              message: 'Запрос не прошёл валидацию. Обязательное поле "профессия" не заполнено'
-            });
-            return;
-          }
-        }
-        if (e.errors.avatar) {
-          if (e.errors.avatar.name === 'ValidatorError') {
-            res.status(INCORRECT_DATA).send({
-              message: 'Запрос не прошёл валидацию. Обязательное поле "аватар" не заполнено'
-            });
-            return;
-          }
-    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' }); */
-    next(e);
-    //
+    if (e.errors.name) {
+      if (e.errors.name.name === 'ValidatorError') {
+        next(new IncorrectData('Запрос не прошёл валидацию. Обязательное поле "Имя" не заполнено'));
+        return;
+      }
+    }
+    if (e.errors.about) {
+      if (e.errors.about.name === 'ValidatorError') {
+        next(new IncorrectData('Запрос не прошёл валидацию. Обязательное поле "профессия" не заполнено'));
+        return;
+      }
+    }
+    if (e.errors.avatar) {
+      if (e.errors.avatar.name === 'ValidatorError') {
+        next(new IncorrectData('Запрос не прошёл валидацию. Обязательное поле"аватар" не заполнено'));
+        return;
+      }
+      next(new ServerError('Произошла ошибка на сервере'));
+    }
   }
-  // }
 };
 const updateUser = (req, res, next) => {
   const { name, about } = req.body;
@@ -174,18 +141,17 @@ const updateUser = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND).send({ message: 'Такого пользователя нет' });
+        next(new NotFound('Такого пользователя нет'));
         return;
       }
       res.send({ data: user });
     })
     .catch((e) => {
-      next(e);
-      /*       if (e.name === 'ValidationError') {
-        res.status(INCORRECT_DATA).send({ message: 'Некорректные данные' });
+      if (e.name === 'ValidationError') {
+        next(new IncorrectData('Некорректные данные'));
         return;
       }
-      res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' }); */
+      next(new ServerError('Произошла ошибка на сервере'));
     });
 };
 const updateUserAvatar = (req, res, next) => {
@@ -197,22 +163,21 @@ const updateUserAvatar = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND).send({ message: 'Такого пользователя нет' });
+        next(new NotFound('Такого пользователя нет'));
         return;
       }
       res.send({ data: user });
     })
     .catch((e) => {
-      next(e);
-      /* if (e.name === 'ValidationError') {
-        res.status(INCORRECT_DATA).send({ message: 'Некорректные данные' });
+      if (e.name === 'ValidationError') {
+        next(new IncorrectData('Некорректные данные'));
         return;
       }
-      res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' }); */
+      next(new ServerError('Произошла ошибка на сервере'));
     });
 };
 const routeNotFoud = (req, res, next) => {
-  res.status(NOT_FOUND).send({ message: 'Страница не найдена' });
+  next(new NotFound('Страница не найдена'));
 };
 
 module.exports = {

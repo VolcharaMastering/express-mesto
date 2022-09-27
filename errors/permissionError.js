@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 class PermissionError extends Error {
   constructor(message) {
     super(message);
