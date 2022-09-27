@@ -1,6 +1,7 @@
 /* eslint-disable linebreak-style */
 /* eslint-disable no-unused-vars */
 /* eslint-disable linebreak-style */
+const AuthError = require('../errors/authError');
 const NotFound = require('../errors/notFound');
 const IncorrectData = require('../errors/requestError');
 const ServerError = require('../errors/serverError');
@@ -27,7 +28,13 @@ const delCardById = async (req, res, next) => {
       next(new NotFound('Нет такой карточки'));
       return;
     }
-    res.status(OK_CODE).send(card);
+    if (JSON.stringify(card.owner) === JSON.stringify(req.user._id)) {
+      await Card.findByIdAndDelete(cardId);
+      res.status(OK_CODE).send(card);
+    } else {
+      next(new AuthError('У вас не достаточно прав для удаления карточки'));
+      return;
+    }
   } catch (e) {
     if (e.name === 'CastError') {
       next(new IncorrectData('Невалидный id '));
