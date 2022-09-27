@@ -10,33 +10,33 @@ const {
   OK_CODE, CODE_CREATED, INCORRECT_DATA, NOT_FOUND, SERVER_ERROR,
 } = require('../states/states');
 
-const getCards = async (req, res) => {
+const getCards = async (req, res, next) => {
   try {
     const cards = await Card.find({});
     res.status(OK_CODE).send(cards);
-  } catch (evt) {
+  } catch (e) {
     next(new ServerError('Произошла ошибка на сервере'));
   }
 };
 
-const delCardById = async (req, res) => {
+const delCardById = async (req, res, next) => {
   const { cardId } = req.params;
   try {
     const card = await Card.findByIdAndDelete(cardId);
     if (!card) {
-      next(new NotFound('Нет такой карточки' ));
+      next(new NotFound('Нет такой карточки'));
       return;
     }
     res.status(OK_CODE).send(card);
   } catch (e) {
     if (e.name === 'CastError') {
-      next(new IncorrectData('Невалидный id ' ));
+      next(new IncorrectData('Невалидный id '));
       return;
     }
     next(new ServerError('Произошла ошибка на сервере'));
   }
 };
-const createCard = async (req, res) => {
+const createCard = async (req, res, next) => {
   const { name, link } = req.body;
   try {
     const card = await new Card({ name, link, owner: req.user._id }).save();
@@ -44,20 +44,20 @@ const createCard = async (req, res) => {
   } catch (e) {
     if (e.errors.name) {
       if (e.errors.name.name === 'ValidatorError') {
-        next(new IncorrectData('Запрос не прошёл валидацию' ));
+        next(new IncorrectData('Запрос не прошёл валидацию'));
         return;
       }
     }
     if (e.errors.link) {
       if (e.errors.link.name === 'ValidatorError') {
-        next(new IncorrectData('Запрос не прошёл валидацию' ));
+        next(new IncorrectData('Запрос не прошёл валидацию'));
         return;
       }
     }
     next(new ServerError('Произошла ошибка на сервере'));
   }
 };
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   const { cardId } = req.params;
   Card.findByIdAndUpdate(
     cardId,
@@ -66,21 +66,21 @@ const likeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        next(new NotFound('Нет такой карточки' ));
+        next(new NotFound('Нет такой карточки'));
         return;
       }
       res.send({ data: card });
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        next(new IncorrectData('Невалидный id ' ));
+        next(new IncorrectData('Невалидный id '));
         return;
       }
       next(new ServerError('Произошла ошибка на сервере'));
     });
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   const { cardId } = req.params;
   Card.findByIdAndUpdate(
     cardId,
@@ -89,14 +89,14 @@ const dislikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        next(new NotFound('Нет такой карточки' ));
+        next(new NotFound('Нет такой карточки'));
         return;
       }
       res.send({ data: card });
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        next(new IncorrectData('Невалидный id ' ));
+        next(new IncorrectData('Невалидный id '));
         return;
       }
       next(new ServerError('Произошла ошибка на сервере'));
