@@ -99,6 +99,9 @@ const dislikeCard = (req, res) => {
       res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
     });
 };
+const routeNotFoud = (req, res, next) => {
+  res.status(NOT_FOUND).send({ message: 'Страница не найдена' });
+};
 
 module.exports = {
   getCards,
@@ -106,4 +109,5 @@ module.exports = {
   createCard,
   likeCard,
   dislikeCard,
+  routeNotFoud,
 };

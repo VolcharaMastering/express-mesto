@@ -1,12 +1,82 @@
-const OK_CODE = 200;
-const CODE_CREATED = 201;
-const INCORRECT_DATA = 400;
-const AUTH_ERROR = 401;
-const NOT_FOUND = 404;
-const SERVER_ERROR = 500;
+/* eslint-disable linebreak-style */
+/* eslint-disable no-useless-escape */
+const { celebrate, Joi } = require('celebrate');
+const { ObjectId } = require('mongoose').Types;
 
-const errorHandler = (err, req, res, next) => {
-  res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере'});
-  next();
+const validId = (value, helpers) => {
+  if (!ObjectId.isValid(value)) {
+    return helpers.error('any.invalid');
+  }
+  return value;
 };
-module.exports = errorHandler;
+
+const validLink = (value, helpers) => {
+  if (!/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/.test(value)) {
+    return helpers.error('any.invalid');
+  }
+  return value;
+};
+
+const validateCreateUser = celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(8),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().custom(validLink),
+  }),
+});
+
+const validateLogin = celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  }),
+});
+
+const validateUserId = celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().required().custom(validId),
+  }),
+});
+
+const validateUpdateUser = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    about: Joi.string().required().min(2).max(30),
+  }),
+});
+
+const validateUpdateAvatar = celebrate({
+  body: Joi.object().keys({
+    avatar: Joi.string().custom(validLink),
+  }),
+});
+
+const validateCreateCard = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    link: Joi.string().required().custom(validLink),
+  }),
+});
+
+const validateCardId = celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().required().custom((value, helpers) => {
+      if (!ObjectId.isValid(value)) {
+        return helpers.error('any.invalid');
+      }
+      return value;
+    }),
+  }),
+});
+
+module.exports = {
+  validateLogin,
+  validateCreateUser,
+  validateUserId,
+  validateUpdateUser,
+  validateUpdateAvatar,
+  validateCreateCard,
+  validateCardId,
+};
