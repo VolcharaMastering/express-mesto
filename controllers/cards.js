@@ -1,8 +1,8 @@
 /* eslint-disable linebreak-style */
 /* eslint-disable no-unused-vars */
 /* eslint-disable linebreak-style */
-const AuthError = require('../errors/authError');
 const NotFound = require('../errors/notFound');
+const PermissionError = require('../errors/permissionError');
 const IncorrectData = require('../errors/requestError');
 const ServerError = require('../errors/serverError');
 const Card = require('../models/Card');
@@ -33,7 +33,7 @@ const delCardById = async (req, res, next) => {
       await Card.findByIdAndDelete(cardId);
       res.status(OK_CODE).send(card);
     } else {
-      next(new AuthError('У вас не достаточно прав для удаления карточки'));
+      next(new PermissionError('У вас не достаточно прав для удаления карточки'));
       return;
     }
   } catch (e) {
