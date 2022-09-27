@@ -1,6 +1,9 @@
 /* eslint-disable linebreak-style */
 /* eslint-disable no-unused-vars */
 /* eslint-disable linebreak-style */
+const NotFound = require('../errors/notFound');
+const IncorrectData = require('../errors/requestError');
+const ServerError = require('../errors/serverError');
 const Card = require('../models/Card');
 
 const {
@@ -12,7 +15,7 @@ const getCards = async (req, res) => {
     const cards = await Card.find({});
     res.status(OK_CODE).send(cards);
   } catch (evt) {
-    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
+    next(new ServerError('Произошла ошибка на сервере'));
   }
 };
 
@@ -21,16 +24,16 @@ const delCardById = async (req, res) => {
   try {
     const card = await Card.findByIdAndDelete(cardId);
     if (!card) {
-      res.status(NOT_FOUND).send({ message: 'Нет такой карточки' });
+      next(new NotFound('Нет такой карточки' ));
       return;
     }
     res.status(OK_CODE).send(card);
   } catch (e) {
     if (e.name === 'CastError') {
-      res.status(INCORRECT_DATA).send({ message: 'Невалидный id ' });
+      next(new IncorrectData('Невалидный id ' ));
       return;
     }
-    res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
+    next(new ServerError('Произошла ошибка на сервере'));
   }
 };
 const createCard = async (req, res) => {
@@ -41,17 +44,17 @@ const createCard = async (req, res) => {
   } catch (e) {
     if (e.errors.name) {
       if (e.errors.name.name === 'ValidatorError') {
-        res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию' });
+        next(new IncorrectData('Запрос не прошёл валидацию' ));
         return;
       }
     }
     if (e.errors.link) {
       if (e.errors.link.name === 'ValidatorError') {
-        res.status(INCORRECT_DATA).send({ message: 'Запрос не прошёл валидацию' });
+        next(new IncorrectData('Запрос не прошёл валидацию' ));
         return;
       }
     }
-    res.status(SERVER_ERROR).send({ message: 'Произошла post ошибка на сервере' });
+    next(new ServerError('Произошла ошибка на сервере'));
   }
 };
 const likeCard = (req, res) => {
@@ -63,17 +66,17 @@ const likeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(NOT_FOUND).send({ message: 'Такой карточки не существует' });
+        next(new NotFound('Нет такой карточки' ));
         return;
       }
       res.send({ data: card });
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        res.status(INCORRECT_DATA).send({ message: 'Невалидный id ' });
+        next(new IncorrectData('Невалидный id ' ));
         return;
       }
-      res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
+      next(new ServerError('Произошла ошибка на сервере'));
     });
 };
 
@@ -86,21 +89,21 @@ const dislikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(NOT_FOUND).send({ message: 'Такой карточки не существует' });
+        next(new NotFound('Нет такой карточки' ));
         return;
       }
       res.send({ data: card });
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        res.status(INCORRECT_DATA).send({ message: 'Невалидный id ' });
+        next(new IncorrectData('Невалидный id ' ));
         return;
       }
-      res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
+      next(new ServerError('Произошла ошибка на сервере'));
     });
 };
 const routeNotFoud = (req, res, next) => {
-  res.status(NOT_FOUND).send({ message: 'Страница не найдена' });
+  next(new NotFound('Страница не найдена'));
 };
 
 module.exports = {
