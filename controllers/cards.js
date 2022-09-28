@@ -7,9 +7,7 @@ const IncorrectData = require('../errors/requestError');
 const ServerError = require('../errors/serverError');
 const Card = require('../models/Card');
 
-const {
-  OK_CODE, CODE_CREATED, INCORRECT_DATA, NOT_FOUND, SERVER_ERROR,
-} = require('../states/states');
+const { OK_CODE, CODE_CREATED } = require('../states/states');
 
 const getCards = async (req, res, next) => {
   try {
