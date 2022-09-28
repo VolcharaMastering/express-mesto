@@ -3,6 +3,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const AuthError = require('../errors/authError');
+const ConflictError = require('../errors/conflictError');
 const NotFound = require('../errors/notFound');
 const PermissionError = require('../errors/permissionError');
 const IncorrectData = require('../errors/requestError');
@@ -97,7 +98,7 @@ const createUser = async (req, res, next) => {
   } = req.body;
   const checkMail = await User.findOne({ email });
   if (checkMail) {
-    next(new IncorrectData('Такой email уже есть в базе'));
+    next(new ConflictError('Такой email уже есть в базе'));
     return;
   }
   try {
@@ -108,7 +109,7 @@ const createUser = async (req, res, next) => {
     res.status(CODE_CREATED).send(user);
   } catch (e) {
     if (e.code === 11000) {
-      next(new IncorrectData('Пользователь с таким email уже существует.'));
+      next(new ConflictError('Пользователь с таким email уже существует.'));
       return;
     }
     if (e.name === 'ValidatorError') {
