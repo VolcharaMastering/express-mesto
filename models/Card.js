@@ -13,7 +13,7 @@ const cardSchema = new mongoose.Schema({
     type: String,
     required: true,
     validate: {
-      validator: (val) => /https?:\/\/(www\.)?[a-zA-Z0-9-._~:/?#[]@!\$&'()\*\+,;=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9-._~:/?#[]@!\$&'()\*\+,;=)/gi.test(val),
+      validator: (val) => /https?\:\/\/(www\.)?[a-zA-Z0-9\-\.\_\~\:\/\?\#\[\]\@\!\$\&\'\(\)\*\+\,\;\=]+\#?$/.test(val),
       message: 'Проверьте формат ссылки',
     },
   },

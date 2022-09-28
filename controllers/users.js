@@ -111,25 +111,12 @@ const createUser = async (req, res, next) => {
       next(new IncorrectData('Пользователь с таким email уже существует.'));
       return;
     }
-    if (e.errors.name) {
-      if (e.errors.name.name === 'ValidatorError') {
-        next(new IncorrectData('Запрос не прошёл валидацию. Обязательное поле "Имя" не заполнено'));
-        return;
-      }
+    if (e.name === 'ValidatorError') {
+      next(new IncorrectData('Запрос не прошёл валидацию'));
+      return;
     }
-    if (e.errors.about) {
-      if (e.errors.about.name === 'ValidatorError') {
-        next(new IncorrectData('Запрос не прошёл валидацию. Обязательное поле "профессия" не заполнено'));
-        return;
-      }
-    }
-    if (e.errors.avatar) {
-      if (e.errors.avatar.name === 'ValidatorError') {
-        next(new IncorrectData('Запрос не прошёл валидацию. Обязательное поле"аватар" не заполнено'));
-        return;
-      }
-      next(new ServerError('Произошла ошибка на сервере'));
-    }
+
+    next(new ServerError('Произошла ошибка на сервере', e.message));
   }
 };
 const updateUser = (req, res, next) => {
@@ -176,9 +163,6 @@ const updateUserAvatar = (req, res, next) => {
       next(new ServerError('Произошла ошибка на сервере'));
     });
 };
-const routeNotFoud = (req, res, next) => {
-  next(new NotFound('Страница не найдена'));
-};
 
 module.exports = {
   getUsers,
@@ -186,7 +170,6 @@ module.exports = {
   createUser,
   updateUser,
   updateUserAvatar,
-  routeNotFoud,
   login,
   aboutMe,
 };

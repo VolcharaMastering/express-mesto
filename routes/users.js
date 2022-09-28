@@ -4,7 +4,7 @@ const { validateUpdateAvatar, validateUpdateUser, validateUserId } = require('..
 
 const userRouter = express.Router();
 const {
-  getUsers, getUserById, updateUser, updateUserAvatar, routeNotFoud, aboutMe,
+  getUsers, getUserById, updateUser, updateUserAvatar, aboutMe,
 } = require('../controllers/users');
 
 userRouter.get('/users', getUsers);
@@ -12,6 +12,5 @@ userRouter.get('/users/me', aboutMe);
 userRouter.get('/users/:userId', validateUserId, getUserById);
 userRouter.patch('/users/me', validateUpdateUser, updateUser);
 userRouter.patch('/users/me/avatar', validateUpdateAvatar, updateUserAvatar);
-userRouter.all('*', routeNotFoud);
 
 module.exports = userRouter;
