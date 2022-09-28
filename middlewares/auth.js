@@ -1,5 +1,7 @@
 /* eslint-disable linebreak-style */
 const jwt = require('jsonwebtoken');
+const AuthError = require('../errors/authError');
+const ServerError = require('../errors/serverError');
 
 const auth = (req, res, next) => {
   const token = req.cookies.jwt;
@@ -8,10 +10,14 @@ const auth = (req, res, next) => {
   try {
     payload = jwt.verify(token, process.env.JWT_SECRET);
     // console.log(payload);
+    req.user = payload;
   } catch (e) {
-    next(e);
+    if (e.name === 'JsonWebTokenError') {
+      next(new AuthError('Неверный токен'));
+      return;
+    }
+    next(new ServerError('Произошла ошибка на сервере'));
   }
-  req.user = payload;
   next();
 };
 
