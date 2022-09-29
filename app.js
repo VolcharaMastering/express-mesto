@@ -11,6 +11,7 @@ const { createUser, login } = require('./controllers/users');
 const { validateLogin, validateCreateUser } = require('./middlewares/errorValidator');
 const errorHandler = require('./middlewares/errorHandler');
 const NotFound = require('./errors/notFound');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -21,6 +22,7 @@ const app = express();
 app.use(cookieParser());
 app.use(express.json());
 
+app.use(requestLogger);
 app.post('/signin/', validateLogin, login);
 app.post('/signup/', validateCreateUser, createUser);
 app.use(auth);
@@ -30,6 +32,8 @@ app.use(require('./routes/users'));
 app.use('*', (req, res, next) => {
   next(new NotFound('Страница не найдена'));
 });
+
+app.use(errorLogger);
 
 app.use(errors());
 app.use(errorHandler);
