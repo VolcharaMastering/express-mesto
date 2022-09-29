@@ -10,6 +10,7 @@ const auth = require('./middlewares/auth');
 const { createUser, login } = require('./controllers/users');
 const { validateLogin, validateCreateUser } = require('./middlewares/errorValidator');
 const errorHandler = require('./middlewares/errorHandler');
+const NotFound = require('./errors/notFound');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -26,13 +27,12 @@ app.use(auth);
 app.use(require('./routes/cards'));
 app.use(require('./routes/users'));
 
+app.use('*', (req, res, next) => {
+  next(new NotFound('Страница не найдена'));
+});
+
 app.use(errors());
 app.use(errorHandler);
-
-app.use('*', (req, res, next) => {
-  res.status(404).send({ message: 'Страница не найдена' });
-  next();
-});
 
 async function connect() {
   await mongoose.connect('mongodb://localhost:27017/mestodb', {
