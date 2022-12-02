@@ -30,6 +30,8 @@
     <img src="https://www.vectorlogo.zone/logos/getpostman/getpostman-icon.svg" alt="postman" width="40" height="40"/> 
   </a> </p>  
 
+*Сайт протестирован в браузерах Mozzila Firefox, Google Chrome (платформы linux и windows, Android) и Vivaldi (windows).*
+
 **Запуск**   
 - Установить Node.js.
 - В директории с проектом ввести команду "npm install".
